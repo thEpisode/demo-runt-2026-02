@@ -94,15 +94,26 @@ class Function {
       return `CREDENCIAL RECHAZADA · ${host} · HTTP 401 · apiKey inválida en modules.llm`;
     }
 
+    // A block page arrives as HTML, never as the API's JSON. That difference
+    // is what separates "the network refused us" from "Azure refused us", and
+    // they are fixed by completely different people.
+    const block = this.#blockPage(error);
+
+    if (block) {
+      return (
+        `BLOQUEADO POR LA RED · ${host} · no llegó a Azure: lo cortó ${block.vendor}` +
+        `${block.category ? ` (categoría "${block.category}")` : ''}. ` +
+        `Hay que pedir a la red del cliente que permita este dominio.`
+      );
+    }
+
     // 403 is not a bad key — that answers 401. It means the request arrived and
-    // was refused, either by the Azure resource's network rules or by the
-    // corporate proxy standing in front of it. The body tells them apart.
+    // was refused after being authenticated.
     if (error?.status === 403) {
       return (
         `ACCESO DENEGADO · ${host} · HTTP 403 · la credencial se aceptó pero la ` +
-        `petición fue rechazada. Puede ser restricción de red del recurso Azure ` +
-        `(la IP de salida de esta máquina no está permitida) o el proxy corporativo. ` +
-        `Detalle: ${this.#snippet(error)}`
+        `petición fue rechazada, probablemente por restricción de red del recurso ` +
+        `Azure. Detalle: ${this.#snippet(error)}`
       );
     }
 
@@ -119,6 +130,36 @@ class Function {
     }
 
     return `SIN SALIDA · ${host} · ${cause || error?.message}`;
+  }
+
+  /**
+   * Recognises a firewall or proxy block page. Those answer HTML where the API
+   * would answer JSON, so the content type of the refusal is the tell.
+   */
+  #blockPage(error) {
+    const body = error?.error || error?.response?.data || error?.message || '';
+    const text = typeof body === 'string' ? body : JSON.stringify(body);
+
+    if (!/<html|<!DOCTYPE html/i.test(text)) {
+      return null;
+    }
+
+    const vendors = [
+      [/fortiguard|fortinet|fortigate/i, 'el firewall (FortiGuard)'],
+      [/zscaler/i, 'el proxy (Zscaler)'],
+      [/bluecoat|blue coat|symantec web/i, 'el proxy (Blue Coat)'],
+      [/squid|access denied.*proxy/i, 'el proxy corporativo'],
+      [/websense|forcepoint/i, 'el filtro (Forcepoint)'],
+      [/palo ?alto/i, 'el firewall (Palo Alto)'],
+    ];
+
+    const matched = vendors.find(([pattern]) => pattern.test(text));
+    const category = text.match(/<td>\s*Category\s*<\/td>\s*<td>\s*([^<]+?)\s*<\/td>/i);
+
+    return {
+      vendor: matched ? matched[1] : 'un filtro de red',
+      category: category ? category[1] : null,
+    };
   }
 
   /** Whatever the other end actually answered, trimmed to one readable line. */
