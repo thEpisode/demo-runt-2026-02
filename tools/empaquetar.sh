@@ -36,8 +36,14 @@ echo "==> Backend"
 for item in app.js package.json config src node_modules; do
   cp -R "$ROOT/backend/$item" "$OUT/backend/"
 done
-rm -rf "$OUT/backend/src/static/sse-test.html" "$OUT/backend/config/default.json"
-cp "$ROOT/backend/config/template.json" "$OUT/backend/config/default.json"
+rm -rf "$OUT/backend/src/static/sse-test.html"
+# Ships with the development connection so the package runs as soon as it is
+# extracted; iniciar.sh warns that those are not the client's data.
+if [ -f "$ROOT/backend/config/default.json" ]; then
+  cp "$ROOT/backend/config/default.json" "$OUT/backend/config/default.json"
+else
+  cp "$ROOT/backend/config/template.json" "$OUT/backend/config/default.json"
+fi
 
 echo "==> Cliente web"
 cp -R "$ROOT/frontend/dist/." "$OUT/web/"

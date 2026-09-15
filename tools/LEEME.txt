@@ -1,27 +1,41 @@
 DEMO RUNT — CONSULTA EN LENGUAJE NATURAL
 ========================================
 
-QUÉ NECESITA ESTA MÁQUINA
-  Nada. Ni Node, ni npm, ni internet, ni permisos de administrador.
-  Todo viene dentro de esta carpeta.
+PARA QUÉ MÁQUINA ES
+  Para la máquina Linux donde se presenta la demo.
+  No necesita Node, ni npm, ni internet, ni permisos de administrador:
+  todo viene dentro de esta carpeta.
+
+  Si la abres en un Mac o en Windows, el Node incluido no puede ejecutarse
+  porque está compilado para Linux. El script te lo dirá y, si tienes Node
+  instalado, lo usará en su lugar.
 
 CÓMO SE INICIA
   Abre una terminal en esta carpeta y escribe:
 
       ./iniciar.sh
 
-  Luego abre el navegador en:
-
-      http://localhost:3610
+  Luego abre el navegador en la dirección que muestre en pantalla
+  (normalmente http://localhost:3610).
 
   Para detenerla, vuelve a la terminal y presiona Ctrl+C.
+
+ANTES DE PRESENTAR
+  La carpeta viene configurada contra la base de DESARROLLO para que
+  funcione apenas se descomprime. Al iniciar verás un aviso recordándolo.
+
+  Para usar los datos reales, edita este archivo:
+
+      backend/config/default.json
+
+  y reemplaza usuario, contraseña y connectString por los del cliente.
 
 SI ALGO FALLA
   "Permission denied"
       chmod +x iniciar.sh
 
-  "falta la conexión a la base de datos"
-      Hay que llenar los datos de Oracle en backend/config/default.json
+  "cannot execute binary file"
+      Estás en Mac o Windows. Esto corre en la máquina Linux de la demo.
 
   La página abre pero las preguntas no responden
       Revisa que la VPN esté conectada en esta máquina.

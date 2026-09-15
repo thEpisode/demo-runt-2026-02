@@ -149,3 +149,4 @@ backend/.DS_Store
 
 # Paquete generado
 dist-demo/
+demo-runt.tar.gz
