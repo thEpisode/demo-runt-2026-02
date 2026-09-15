@@ -1,0 +1,177 @@
+{
+  "framework": {
+    "name": "@link-loom/sdk"
+  },
+  "server": {
+    "port": "3601",
+    "version": "1.0.0",
+    "name": "runt.svc",
+    "id": "xxxx__your_id",
+    "secret": "xxxx__your_secret"
+  },
+  "services": {
+    "frontend": {
+      "uri": "http://localhost:3500"
+    },
+    "apiManager": {
+      "secret": "xxxx__your_secret",
+      "uri": "http://localhost:3500"
+    },
+    "broker": {
+      "uri": "http://localhost:3602"
+    }
+  },
+  "security": {
+    "jwtTokenLifetimeHours": 24
+  },
+  "modules": {
+    "database": {
+      "settings": {
+        "enabled": false,
+        "default": "mongodb"
+      },
+      "providers": {
+        "mongodb": {
+          "settings": {
+            "connection": "xxxx__your_config",
+            "useNewUrlParser": true,
+            "useUnifiedTopology": true,
+            "dbName": "xxxx__your_config"
+          }
+        },
+        "firestore": {
+          "settings": {
+            "timestampsInSnapshots": true,
+            "type": "xxxx__your_config",
+            "project_id": "xxxx__your_config",
+            "private_key_id": "xxxx__your_config",
+            "private_key": "xxxx__your_configx",
+            "client_email": "xxxx__your_config",
+            "client_id": "xxxx__your_config",
+            "auth_uri": "xxxx__your_config",
+            "token_uri": "xxxx__your_config",
+            "auth_provider_x509_cert_url": "xxxx__your_config",
+            "client_x509_cert_url": "xxxx__your_config"
+          }
+        }
+      }
+    },
+    "storage": {
+      "settings": {
+        "enabled": false,
+        "default": "firebase",
+        "maxFileSize": 5242880
+      },
+      "providers": {
+        "azurestorage": {
+          "settings": {
+            "connection": "xxxx__your_config",
+            "containerName": "xxxx__your_config"
+          }
+        },
+        "firebase": {
+          "settings": {
+            "apiKey": "xxxx__your_config",
+            "authDomain": "xxxx__your_config",
+            "projectId": "xxxx__your_config",
+            "storageBucket": "xxxx__your_config",
+            "messagingSenderId": "xxxx__your_config",
+            "appId": "xxxx__your_config"
+          }
+        }
+      }
+    },
+    "push": {
+      "settings": {
+        "enabled": false,
+        "default": "firebase"
+      },
+      "providers": {
+        "firebase": {
+          "connectionObj": {
+            "apiKey": "xxxx__your_config",
+            "authDomain": "xxxx__your_config",
+            "projectId": "xxxx__your_config",
+            "messagingSenderId": "xxxx__your_config",
+            "appId": "xxxx__your_config"
+          }
+        }
+      }
+    },
+    "observability": {
+      "settings": {
+        "enabled": false,
+        "default": "vectry"
+      },
+      "providers": {
+        "vectry": {
+          "settings": {
+            "organizationId": "xxxx__your_config",
+            "apiKey": "xxxx__your_config",
+            "vectryEnvironment": "prod"
+          }
+        },
+        "sentry": {
+          "settings": {
+            "dsn": "xxxx__your_config",
+            "environment": "xxxx__your_config"
+          }
+        }
+      }
+    },
+    "eventSystem": {
+      "settings": {
+        "enabled": true,
+        "internalBusManager": true,
+        "broker": true,
+        "listenProducerEvents": true,
+        "listenConsumerEvents": false
+      }
+    },
+    "email": {
+      "settings": {
+        "enabled": true,
+        "default": "office365"
+      },
+      "providers": {
+        "office365": {
+          "settings": {
+            "user": "xxxx__your_config@xxxx__your_config.com",
+            "password": "xxxx__your_config",
+            "secure": true,
+            "host": "xxxx__your_config",
+            "port": 465
+          }
+        }
+      },
+      "actions": {
+        "validateEmail": {
+          "from": "\"xxxx__your_config\" support@xxxx__your_config.com",
+          "path": "/validate-email"
+        },
+        "recoverPassword": {
+          "from": "\"xxxx__your_config\" support@xxxx__your_config.com",
+          "path": "/auth/new-password"
+        }
+      }
+    }
+  },
+  "customDependencies": [
+    {
+      "name": "socketClient",
+      "package": "socket.io-client"
+    },
+    {
+      "name": "firebase",
+      "package": "firebase-admin"
+    },
+    {
+      "name": "mongodb",
+      "package": "mongodb"
+    },
+    {
+      "name": "vectry",
+      "package": "@vectry/node"
+    }
+  ]
+}

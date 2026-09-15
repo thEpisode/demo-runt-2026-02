@@ -1,0 +1,68 @@
+{
+  "name": "@linkloom/loom-svc-js",
+  "title": "Loom service",
+  "description": "Another Node.js Server framework to create microservices or huge monoliths.",
+  "version": "7.3.9",
+  "homepage": "https://github.com/link-loom",
+  "author": "Camilo Alexander Rodriguez Cuaran <camiepisode@outlook.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/link-loom/loom-svc-js.git"
+  },
+  "keywords": [
+    "Main",
+    "runt.svc",
+    "beat",
+    "microservices",
+    "node.js",
+    "javascript",
+    "loom",
+    "link-loom"
+  ],
+  "bugs": {
+    "url": "https://github.com/link-loom/loom-svc-js/issues"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@link-loom/sdk": "7.3.48",
+    "@vectry/node": "^1.0.18",
+    "aes-js": "^3.1.2",
+    "axios": "^1.8.4",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "latest",
+    "colors": "latest",
+    "compression": "^1.7.2",
+    "config": "^1.30.0",
+    "cookie-parser": "^1.4.3",
+    "cors": "latest",
+    "exceljs": "^3.3.1",
+    "express": "latest",
+    "firebase-admin": "^13.2.0",
+    "helmet": "^3.21.2",
+    "html-to-text": "^5.1.1",
+    "jsonwebtoken": "latest",
+    "moment": "^2.29.4",
+    "mongodb": "^5.1.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.7.3",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.48.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.3"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "lint": "eslint src/**/*.{js,jsx}",
+    "format": "prettier --write **/*.{js,jsx}",
+    "seed": "node src/seeder/run-seeds.js"
+  }
+}
