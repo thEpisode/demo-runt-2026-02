@@ -19,7 +19,7 @@ fi
 
 HOST="${1:-}"
 if [ -z "$HOST" ]; then
-  HOST="$(grep -o 'LLM_ENDPOINT="[^"]*"' backend/.env 2>/dev/null | sed 's|.*//||; s|/.*||')"
+  HOST="$(grep -o '"endpoint"[[:space:]]*:[[:space:]]*"[^"]*"' backend/config/default.json 2>/dev/null | sed 's|.*//||; s|/\?"$||' | head -1)"
 fi
 
 if [ -z "$HOST" ]; then

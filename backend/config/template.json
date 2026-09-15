@@ -70,6 +70,22 @@
         }
       }
     },
+    "llm": {
+      "settings": {
+        "enabled": true,
+        "default": "azure-openai"
+      },
+      "providers": {
+        "azure-openai": {
+          "settings": {
+            "endpoint": "xxxx__your_config",
+            "apiKey": "xxxx__your_config",
+            "apiVersion": "2024-08-01-preview",
+            "deployment": "xxxx__your_config"
+          }
+        }
+      }
+    },
     "storage": {
       "settings": {
         "enabled": false,

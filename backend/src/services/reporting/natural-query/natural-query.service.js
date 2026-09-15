@@ -14,6 +14,13 @@ class ReportingNaturalQueryService {
     this._catalogService = new this._dependencies.services.ReportingQueryCatalogService(dependencies);
     this._compilerService = new this._dependencies.services.ReportingQueryCompilerService(dependencies);
     this._database = this._dependencies?.database?.default?.adapter;
+
+    // Link Loom injects the environment as config: locally from
+    // config/default.json, and replaced wholesale when it runs under Link Loom
+    // Cloud. Reading process.env would bypass that contract.
+    const llm = this._dependencies?.config?.modules?.llm || {};
+    this._llmSettings = llm?.providers?.[llm?.settings?.default]?.settings || {};
+
     this._namespace = '[Service]::[Reporting]::[NaturalQuery]';
   }
 
@@ -227,13 +234,14 @@ class ReportingNaturalQueryService {
   }
 
   async #interpret({ question, previousSpec }) {
-    const missing = ['LLM_ENDPOINT', 'LLM_APIKEY', 'LLM_APIVERSION', 'LLM_DEPLOYMENT'].filter(
-      (name) => !process.env[name],
-    );
+    const { endpoint, apiKey, apiVersion, deployment } = this._llmSettings;
+    const missing = Object.entries({ endpoint, apiKey, apiVersion, deployment })
+      .filter(([, value]) => !value || String(value).startsWith('xxxx__'))
+      .map(([name]) => name);
 
     if (missing.length) {
       return this._utilities.io.response.error(
-        `El modelo no está configurado. Faltan: ${missing.join(', ')}`,
+        `El modelo no está configurado. Faltan en modules.llm: ${missing.join(', ')}`,
       );
     }
 
@@ -241,18 +249,13 @@ class ReportingNaturalQueryService {
 
     try {
       const { AzureOpenAI } = this._dependencies.openai;
-      const client = new AzureOpenAI({
-        endpoint: process.env.LLM_ENDPOINT,
-        apiKey: process.env.LLM_APIKEY,
-        apiVersion: process.env.LLM_APIVERSION,
-        deployment: process.env.LLM_DEPLOYMENT,
-      });
+      const client = new AzureOpenAI({ endpoint, apiKey, apiVersion, deployment });
 
       const messages = await this.#buildMessages({ question, previousSpec });
 
       const completion = await client.chat.completions.create({
         messages,
-        model: process.env.LLM_DEPLOYMENT,
+        model: deployment,
         temperature: 0,
         response_format: { type: 'json_object' },
       });

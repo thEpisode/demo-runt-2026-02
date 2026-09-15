@@ -27,11 +27,12 @@ ANTES DE PRESENTAR
   La carpeta viene configurada contra la base de DESARROLLO para que
   funcione apenas se descomprime. Al iniciar verás un aviso recordándolo.
 
-  Para usar los datos reales, edita este archivo:
+  Para usar los datos reales, edita este único archivo:
 
       backend/config/default.json
 
-  y reemplaza usuario, contraseña y connectString por los del cliente.
+  Ahí van tanto la conexión a Oracle (usuario, contraseña, connectString)
+  como las credenciales del modelo.
 
 SI LA RED INTERCEPTA EL TRÁFICO (proxy corporativo)
   No hay que hacer nada: al iniciar se detecta solo y se resuelve.

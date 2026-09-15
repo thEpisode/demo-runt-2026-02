@@ -1,5 +1,3 @@
-const REQUIRED = ['LLM_ENDPOINT', 'LLM_APIKEY', 'LLM_APIVERSION', 'LLM_DEPLOYMENT'];
-
 // A corporate proxy that terminates TLS surfaces as one of these underneath the
 // SDK error, and it needs a different fix than having no route out.
 const INTERCEPTION_CODES = [
@@ -20,6 +18,11 @@ class Function {
     /* Custom Properties */
     this._openai = this._dependencies.openai;
 
+    // Link Loom injects the environment as config, so the settings come from
+    // there and not from process.env.
+    const llm = this._dependencies?.config?.modules?.llm || {};
+    this._settings = llm?.providers?.[llm?.settings?.default]?.settings || {};
+
     /* Assigments */
     this._namespace = '[Function]::[Startup]::[Check]::[Model]';
   }
@@ -30,10 +33,13 @@ class Function {
    * of only whether the host answers.
    */
   async run() {
-    const missing = REQUIRED.filter((name) => !process.env[name]);
+    const { endpoint, apiKey, apiVersion, deployment } = this._settings;
+    const missing = Object.entries({ endpoint, apiKey, apiVersion, deployment })
+      .filter(([, value]) => !value || String(value).startsWith('xxxx__'))
+      .map(([name]) => name);
 
     if (missing.length) {
-      this._console.error(`FALLA · faltan credenciales: ${missing.join(', ')}`, {
+      this._console.error(`FALLA · faltan en modules.llm: ${missing.join(', ')}`, {
         namespace: this._namespace,
       });
       return;
@@ -46,20 +52,13 @@ class Function {
       return;
     }
 
-    const deployment = process.env.LLM_DEPLOYMENT;
-    const host = String(process.env.LLM_ENDPOINT).replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    const host = String(endpoint).replace(/^https?:\/\//, '').replace(/\/.*$/, '');
     const usingCustomCa = Boolean(process.env.NODE_EXTRA_CA_CERTS);
     const startedAt = Date.now();
 
     try {
       const { AzureOpenAI } = this._openai;
-      const client = new AzureOpenAI({
-        endpoint: process.env.LLM_ENDPOINT,
-        apiKey: process.env.LLM_APIKEY,
-        apiVersion: process.env.LLM_APIVERSION,
-        deployment,
-        maxRetries: 0,
-      });
+      const client = new AzureOpenAI({ endpoint, apiKey, apiVersion, deployment, maxRetries: 0 });
 
       // One token is enough to exercise credentials and deployment name.
       await client.chat.completions.create({

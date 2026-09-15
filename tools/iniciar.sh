@@ -46,9 +46,9 @@ case "$CONNECTION" in
     ;;
 esac
 
-if ! grep -qE '^LLM_APIKEY="?..' "$HERE/backend/.env" 2>/dev/null; then
-  echo "  AVISO: faltan las credenciales del modelo en backend/.env."
-  echo "         El buscador y el asistente no podrán interpretar preguntas;"
+if grep -q '"apiKey"[[:space:]]*:[[:space:]]*"xxxx__' "$CONFIG"; then
+  echo "  AVISO: faltan las credenciales del modelo en backend/config/default.json."
+  echo "         El Buscador y el Asistente no podrán interpretar preguntas;"
   echo "         el Constructor sí funciona, porque no usa el modelo."
 fi
 echo
@@ -56,7 +56,8 @@ echo
 # Corporate networks often intercept TLS and present their own certificate,
 # which Node rejects. Rather than asking the operator to diagnose that, probe
 # the endpoint and capture the chain automatically when it happens.
-LLM_HOST="$(grep -o 'LLM_ENDPOINT="[^"]*"' "$HERE/backend/.env" 2>/dev/null | sed 's|.*//||; s|/.*||')"
+# Everything the demo needs lives in one file: Link Loom injects it as config.
+LLM_HOST="$(grep -o '"endpoint"[[:space:]]*:[[:space:]]*"[^"]*"' "$CONFIG" | sed 's|.*//||; s|/\?"$||' | head -1)"
 
 probe_tls() {
   [ -n "$LLM_HOST" ] || return 0
@@ -110,4 +111,4 @@ echo "  Abre el navegador en:  http://localhost:$PORT"
 echo
 
 cd "$HERE/backend"
-exec "$NODE_BIN" -r dotenv/config app.js
+SUPPRESS_NO_CONFIG_WARNING=true exec "$NODE_BIN" app.js

@@ -54,15 +54,6 @@ cp "$ROOT/tools/capturar-ca.sh" "$OUT/capturar-ca.sh"
 cp "$ROOT/tools/LEEME.txt" "$OUT/LEEME.txt"
 chmod +x "$OUT/iniciar.sh" "$OUT/capturar-ca.sh"
 
-# Credentials travel inside the package: without them the demo cannot
-# interpret a question, and the machine it runs on has no way to fetch them.
-if [ -f "$ROOT/backend/.env" ]; then
-  cp "$ROOT/backend/.env" "$OUT/backend/.env"
-else
-  echo "  AVISO: no hay backend/.env, el paquete saldrá sin credenciales del modelo" >&2
-  cp "$ROOT/backend/.env.sample" "$OUT/backend/.env"
-fi
-
 echo
 echo "Listo: $OUT"
 du -sh "$OUT"
