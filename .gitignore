@@ -151,3 +151,6 @@ backend/.DS_Store
 dist-demo/
 demo-runt.tar.gz
 ca.pem
+
+dist-demo-windows/
+demo-runt-windows.zip

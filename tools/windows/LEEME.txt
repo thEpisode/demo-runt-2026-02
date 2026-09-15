@@ -1,0 +1,45 @@
+DEMO RUNT - CONSULTA EN LENGUAJE NATURAL
+========================================
+
+PARA QUE MAQUINA ES
+  Windows 10 o superior, 64 bits.
+  No necesita instalar nada: Node viene dentro de esta carpeta.
+
+COMO SE INICIA
+  Haz doble clic en:
+
+      INICIAR.cmd
+
+  Se abrira una ventana negra y, enseguida, el navegador en
+  http://localhost:3610
+
+  Para detener la demo, cierra esa ventana negra.
+
+SI WINDOWS MUESTRA UNA ADVERTENCIA
+  Puede aparecer "Windows protegio su PC" al abrirlo.
+  Haz clic en "Mas informacion" y luego en "Ejecutar de todas formas".
+
+  Si el Firewall de Windows pregunta, basta con permitir el acceso
+  en redes privadas.
+
+ANTES DE PRESENTAR
+  La configuracion esta en un solo archivo:
+
+      backend\config\default.json
+
+  Ahi van la conexion a Oracle (usuario, contrasena, connectString) y
+  las credenciales del modelo.
+
+SI LA RED INTERCEPTA EL TRAFICO
+  No hay que hacer nada: al iniciar se detecta y se resuelve solo.
+
+SI LAS PREGUNTAS ESCRITAS NO RESPONDEN
+  Es la salida a internet hacia el servicio del modelo. La ventana negra
+  dira exactamente que paso.
+
+  El Constructor sigue funcionando: esa pantalla arma la consulta con
+  filtros y no usa el modelo.
+
+SI EL PUERTO ESTA OCUPADO
+  Significa que la demo ya esta abierta en otra ventana. Cierrala
+  y vuelve a iniciar.
