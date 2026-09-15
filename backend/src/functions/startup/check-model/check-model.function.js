@@ -90,8 +90,20 @@ class Function {
       return `TLS INTERCEPTADO · ${host} · ${cause} · ${remedy}`;
     }
 
-    if (error?.status === 401 || error?.status === 403) {
-      return `CREDENCIAL RECHAZADA · ${host} · HTTP ${error.status} · revisar LLM_APIKEY`;
+    if (error?.status === 401) {
+      return `CREDENCIAL RECHAZADA · ${host} · HTTP 401 · apiKey inválida en modules.llm`;
+    }
+
+    // 403 is not a bad key — that answers 401. It means the request arrived and
+    // was refused, either by the Azure resource's network rules or by the
+    // corporate proxy standing in front of it. The body tells them apart.
+    if (error?.status === 403) {
+      return (
+        `ACCESO DENEGADO · ${host} · HTTP 403 · la credencial se aceptó pero la ` +
+        `petición fue rechazada. Puede ser restricción de red del recurso Azure ` +
+        `(la IP de salida de esta máquina no está permitida) o el proxy corporativo. ` +
+        `Detalle: ${this.#snippet(error)}`
+      );
     }
 
     if (error?.status === 404) {
@@ -103,10 +115,18 @@ class Function {
     }
 
     if (error?.status) {
-      return `ERROR DEL SERVICIO · ${host} · HTTP ${error.status} · ${error.message}`;
+      return `ERROR DEL SERVICIO · ${host} · HTTP ${error.status} · ${this.#snippet(error)}`;
     }
 
     return `SIN SALIDA · ${host} · ${cause || error?.message}`;
+  }
+
+  /** Whatever the other end actually answered, trimmed to one readable line. */
+  #snippet(error) {
+    const body = error?.error || error?.response?.data;
+    const text = typeof body === 'string' ? body : JSON.stringify(body || error?.message || '');
+
+    return text.replace(/\s+/g, ' ').slice(0, 220);
   }
 }
 
