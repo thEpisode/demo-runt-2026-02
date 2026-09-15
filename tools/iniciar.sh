@@ -45,7 +45,22 @@ case "$CONNECTION" in
     echo "         Para la presentación, edita backend/config/default.json."
     ;;
 esac
+
+if ! grep -qE '^LLM_APIKEY="?..' "$HERE/backend/.env" 2>/dev/null; then
+  echo "  AVISO: faltan las credenciales del modelo en backend/.env."
+  echo "         El buscador y el asistente no podrán interpretar preguntas;"
+  echo "         el Constructor sí funciona, porque no usa el modelo."
+fi
 echo
+
+# Corporate TLS interception makes Node reject the model endpoint the same way
+# curl does. ca.pem, produced by capturar-ca.sh, is the chain the proxy
+# presents; trusting it is what lets the request through.
+if [ -f "$HERE/ca.pem" ]; then
+  export NODE_EXTRA_CA_CERTS="$HERE/ca.pem"
+  echo "  Usando la cadena de certificados local (ca.pem)."
+  echo
+fi
 
 PORT="$(grep -o '"port"[[:space:]]*:[[:space:]]*"[0-9]*"' "$CONFIG" | grep -o '[0-9]*' | head -1)"
 PORT="${PORT:-3610}"

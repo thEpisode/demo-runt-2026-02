@@ -50,16 +50,18 @@ cp -R "$ROOT/frontend/dist/." "$OUT/web/"
 
 echo "==> Scripts"
 cp "$ROOT/tools/iniciar.sh" "$OUT/iniciar.sh"
+cp "$ROOT/tools/capturar-ca.sh" "$OUT/capturar-ca.sh"
 cp "$ROOT/tools/LEEME.txt" "$OUT/LEEME.txt"
-chmod +x "$OUT/iniciar.sh"
+chmod +x "$OUT/iniciar.sh" "$OUT/capturar-ca.sh"
 
-cat > "$OUT/backend/.env" <<'ENV'
-LLM_ENDPOINT=""
-LLM_APIKEY=""
-LLM_APIVERSION="2024-08-01-preview"
-LLM_DEPLOYMENT=""
-SUPPRESS_NO_CONFIG_WARNING=true
-ENV
+# Credentials travel inside the package: without them the demo cannot
+# interpret a question, and the machine it runs on has no way to fetch them.
+if [ -f "$ROOT/backend/.env" ]; then
+  cp "$ROOT/backend/.env" "$OUT/backend/.env"
+else
+  echo "  AVISO: no hay backend/.env, el paquete saldrá sin credenciales del modelo" >&2
+  cp "$ROOT/backend/.env.sample" "$OUT/backend/.env"
+fi
 
 echo
 echo "Listo: $OUT"

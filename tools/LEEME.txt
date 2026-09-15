@@ -30,6 +30,16 @@ ANTES DE PRESENTAR
 
   y reemplaza usuario, contraseña y connectString por los del cliente.
 
+SI LA RED INTERCEPTA EL TRÁFICO (proxy corporativo)
+  Síntoma: las preguntas escritas no responden, o el registro dice algo de
+  certificados. Solución, una sola vez en esta máquina:
+
+      ./capturar-ca.sh
+
+  Genera un ca.pem con los certificados que presenta el proxy. A partir de
+  ahí ./iniciar.sh lo usa solo. El Constructor funciona sin esto, porque no
+  usa el modelo.
+
 SI ALGO FALLA
   "Permission denied"
       chmod +x iniciar.sh
