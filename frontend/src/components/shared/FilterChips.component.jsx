@@ -1,8 +1,9 @@
-import { Box, Button, MenuItem, Select, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { palette } from "../../theme/theme";
 import { FilterValueInput } from "./FilterValueInput.component";
-import { findDimension, withAddedFilter, withFilterAt, withoutFilterAt } from "./spec.helpers";
+import { AddConditionMenu } from "./AddConditionMenu.component";
+import { findDimension, withFilterAt, withFilterForDimension, withoutFilterAt } from "./spec.helpers";
 
 /**
  * The dark sidebar of the search screen: the filters the model read out of the
@@ -96,12 +97,12 @@ export const FilterChips = ({ entity, spec, onChange, onApply, onClear, busy }) 
         ) : null}
       </Stack>
 
-      <Button
-        onClick={() => onChange(withAddedFilter(spec, entity))}
-        sx={{ color: "#7FD3F5", fontSize: 13, px: 0, mt: 1.5 }}
-      >
-        + Agregar condición
-      </Button>
+      <AddConditionMenu
+        dark
+        entity={entity}
+        spec={spec}
+        onSelect={(dimension) => onChange(withFilterForDimension(spec, entity, dimension))}
+      />
 
       <Stack spacing={1.2} sx={{ mt: 3 }}>
         <Button

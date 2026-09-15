@@ -34,7 +34,7 @@ const StepBadge = ({ number, label, dark }) => (
 );
 
 export const BuilderPage = () => {
-  const { entity, spec, updateSpec, result, error, runSpec, isBusy, status, pagination, changePagination } =
+  const { entity, spec, updateSpec, result, error, runSpec, isBusy, status, pagination, changePagination, canRun } =
     useQuerySpec();
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export const BuilderPage = () => {
             <Stack direction="row" spacing={1.4} sx={{ mt: 2.5 }}>
               <Button
                 variant="contained"
-                disabled={!spec || isBusy}
+                disabled={!canRun || isBusy}
                 onClick={() => runSpec(spec)}
                 sx={{ bgcolor: palette.accent, "&:hover": { bgcolor: palette.accentDark }, px: 2.5 }}
               >
@@ -98,7 +98,7 @@ export const BuilderPage = () => {
               </Button>
               <Button
                 variant="outlined"
-                disabled={!spec || isBusy}
+                disabled={!canRun || isBusy}
                 onClick={() => runSpec(spec, { dry_run: true })}
                 sx={{ borderColor: "rgba(255,255,255,0.4)", color: "#FFFFFF", px: 2.5 }}
               >

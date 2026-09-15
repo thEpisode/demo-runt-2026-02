@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { queryService } from "../services/query.service";
+import { isSpecComplete } from "../components/shared/spec.helpers";
 
 const QueryContext = createContext(null);
 
@@ -202,6 +203,12 @@ export const QueryProvider = ({ children }) => {
       clearTimeout(restateTimer.current);
     }
 
+    // A half-filled condition has no sentence yet, and asking for one would
+    // only surface a validation error while the user is still choosing.
+    if (!isSpecComplete(nextSpec)) {
+      return;
+    }
+
     restateTimer.current = setTimeout(async () => {
       const response = await queryService.restate({ spec: nextSpec });
 
@@ -253,6 +260,7 @@ export const QueryProvider = ({ children }) => {
     reset,
     pagination,
     changePagination,
+    canRun: Boolean(spec) && isSpecComplete(spec),
     expected,
     setExpected,
     validation,

@@ -1,15 +1,19 @@
 import { createTheme } from "@mui/material/styles";
 
 export const palette = {
-  navy: "#253B63",
-  navyDeep: "#1C2E4F",
-  navySoft: "#32496F",
+  // Taken from the RUNT logo itself, so the mark sits on the header without a
+  // visible tile behind it.
+  navy: "#2A315C",
+  navyDeep: "#212747",
+  navySoft: "#3A4273",
   accent: "#29A3DB",
   accentDark: "#1B85B8",
   page: "#F1F4F9",
   surface: "#FFFFFF",
   border: "#E1E7F0",
   text: "#1F2A44",
+  // Deeper than the body text, so the answer carries weight without a hue.
+  ink: "#0E121C",
   muted: "#66748F",
   success: "#1E7A4A",
   successSoft: "#E6F4EC",

@@ -1,85 +1,11 @@
 import { useState } from "react";
-import { Box, Button, Collapse, InputBase, Stack, Typography } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { Box, Collapse, Stack, Typography } from "@mui/material";
 import { SqlPanel, SqlToggle } from "./SqlBlock.component";
 import { displayType, palette } from "../../theme/theme";
 
 const formatNumber = (value) => new Intl.NumberFormat("es-CO").format(value);
 
-/**
- * Validation is an action, not a status: asking the user to compare against a
- * figure they already know is the client's acceptance criterion, so it reads as
- * a question rather than as a badge that never resolves.
- */
-const Validation = ({ expected, onExpectedChange, total, validation }) => {
-  const [open, setOpen] = useState(false);
-
-  if (validation.state === "match" || validation.state === "mismatch") {
-    const matched = validation.state === "match";
-    const Icon = matched ? CheckCircleIcon : ErrorOutlineIcon;
-    const color = matched ? palette.success : palette.danger;
-
-    return (
-      <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 2.5 }}>
-        <Icon sx={{ fontSize: 17, color }} />
-        <Typography sx={{ fontSize: 13.5, color }}>
-          {matched
-            ? `Coincide con el dato esperado (${formatNumber(validation.expected)})`
-            : `No coincide: esperabas ${formatNumber(validation.expected)}`}
-        </Typography>
-        <Button
-          size="small"
-          onClick={() => onExpectedChange("")}
-          sx={{ color: palette.muted, fontSize: 12.5, minWidth: 0 }}
-        >
-          Cambiar
-        </Button>
-      </Stack>
-    );
-  }
-
-  if (!open) {
-    return (
-      <Button
-        size="small"
-        onClick={() => setOpen(true)}
-        sx={{ mt: 2, px: 0, color: palette.accent, fontSize: 13 }}
-      >
-        Contrastar con un dato que ya conoces
-      </Button>
-    );
-  }
-
-  return (
-    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 2, maxWidth: 380 }}>
-      <InputBase
-        autoFocus
-        value={expected}
-        onChange={(event) => onExpectedChange(event.target.value)}
-        placeholder={`¿Cuántos esperabas? (obtuvimos ${formatNumber(total)})`}
-        sx={{
-          flex: 1,
-          px: 1.6,
-          py: 0.8,
-          fontSize: 13.5,
-          border: `1px solid ${palette.border}`,
-          borderRadius: 1.5,
-        }}
-      />
-    </Stack>
-  );
-};
-
-export const AnswerCard = ({
-  answer,
-  meta,
-  validation,
-  expected,
-  onExpectedChange,
-  sql,
-  binds,
-}) => {
+export const AnswerCard = ({ answer, meta, sql, binds }) => {
   const [sqlOpen, setSqlOpen] = useState(false);
 
   if (!answer) {
@@ -103,27 +29,28 @@ export const AnswerCard = ({
       {/* The figure and the sentence are one statement, so they sit together
           on a single baseline instead of stacking as separate blocks. */}
       <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={{ xs: 0.5, sm: 2.5 }}
-        alignItems={{ xs: "flex-start", sm: "baseline" }}
-        sx={{ mt: 0.8 }}
+        direction="row"
+        spacing={1.2}
+        alignItems="baseline"
+        sx={{ mt: 0.8, flexWrap: "wrap" }}
       >
+        {/* Emphasis comes from weight and depth rather than size: a large
+            figure dwarfed the sentence it belongs to. */}
         <Typography
-          sx={{ ...displayType, fontSize: { xs: 42, md: 52 }, lineHeight: 1, color: palette.navy }}
+          sx={{
+            ...displayType,
+            fontWeight: 700,
+            fontSize: 21,
+            lineHeight: 1.4,
+            color: palette.ink,
+          }}
         >
           {formatNumber(answer.value)}
         </Typography>
-        <Typography sx={{ fontSize: 16, lineHeight: 1.45, color: palette.text, maxWidth: 520 }}>
+        <Typography sx={{ fontSize: 17, lineHeight: 1.45, color: palette.text, maxWidth: 620 }}>
           {answer.sentence}
         </Typography>
       </Stack>
-
-      <Validation
-        expected={expected}
-        onExpectedChange={onExpectedChange}
-        total={answer.value}
-        validation={validation}
-      />
 
       {meta && meta.usesIndex === false ? (
         <Typography sx={{ fontSize: 12.5, color: palette.warning, mt: 1.5 }}>
@@ -138,7 +65,7 @@ export const AnswerCard = ({
         alignItems="center"
         justifyContent="space-between"
         spacing={2}
-        sx={{ mt: 3, pt: 1.5, borderTop: `1px solid ${palette.border}` }}
+        sx={{ mt: 2.5, pt: 1.5, borderTop: `1px solid ${palette.border}` }}
       >
         <Typography sx={{ fontSize: 12.5, color: palette.muted }}>{facts.join(" · ")}</Typography>
         {sql ? <SqlToggle open={sqlOpen} onToggle={() => setSqlOpen((current) => !current)} /> : null}

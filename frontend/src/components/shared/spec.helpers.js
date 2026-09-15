@@ -41,28 +41,43 @@ export const withoutFilterAt = (spec, index) => ({
   filters: spec.filters.filter((_, position) => position !== index),
 });
 
-export const withAddedFilter = (spec, entity) => {
-  const used = new Set(spec.filters.map((filter) => filter.dimension));
-  const available = entity.dimensions.filter(
+/** Dimensions that are not already filtered, for the add-condition menu. */
+export const availableDimensions = (entity, spec) => {
+  const used = new Set((spec?.filters || []).map((filter) => filter.dimension));
+
+  return (entity?.dimensions || []).filter(
     (dimension) => dimension.kind !== "date" && !used.has(dimension.name),
   );
+};
 
-  // Prefer a dimension that has a closed list, so the new row is valid the
-  // moment it appears instead of showing an error until the user types.
-  const next =
-    available.find((dimension) => dimension.values?.length) ||
-    available[0] ||
-    entity.dimensions[0];
+/**
+ * Adds the dimension the user picked, with no value: choosing the field and
+ * giving it a value are two separate decisions.
+ */
+export const withFilterForDimension = (spec, entity, dimensionName) => {
+  const dimension = findDimension(entity, dimensionName);
+
+  if (!dimension) {
+    return spec;
+  }
 
   return {
     ...spec,
     filters: [
-      ...spec.filters,
-      {
-        dimension: next.name,
-        operator: next.operators[0],
-        value: next.values?.length ? next.values[0].label : "",
-      },
+      ...(spec?.filters || []),
+      { dimension: dimension.name, operator: dimension.operators[0], value: "" },
     ],
   };
 };
+
+/** True when every condition has a value and the spec can be executed. */
+export const isSpecComplete = (spec) =>
+  (spec?.filters || []).every((filter) => {
+    if (["is_null", "is_not_null"].includes(filter.operator)) {
+      return true;
+    }
+
+    const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+
+    return values.length > 0 && values.every((value) => value !== "" && value !== null && value !== undefined);
+  });

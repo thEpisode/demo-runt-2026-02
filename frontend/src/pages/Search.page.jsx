@@ -22,12 +22,10 @@ export const SearchPage = () => {
     ask,
     runSpec,
     reset,
-    validation,
     isBusy,
     pagination,
     changePagination,
-    expected,
-    setExpected,
+    canRun,
   } = useQuerySpec();
   const [text, setText] = useState(question);
   const [refinement, setRefinement] = useState("");
@@ -103,7 +101,7 @@ export const SearchPage = () => {
           <FilterChips
             entity={entity}
             spec={spec}
-            busy={isBusy}
+            busy={isBusy || !canRun}
             onChange={updateSpec}
             onApply={() => runSpec(spec)}
             onClear={reset}
@@ -129,9 +127,6 @@ export const SearchPage = () => {
                 <AnswerCard
                   answer={result.answer}
                   meta={result.meta}
-                  validation={validation}
-                  expected={expected}
-                  onExpectedChange={setExpected}
                   sql={result.groups?.length ? result.groupSql : result.sql}
                   binds={result.binds}
                 />

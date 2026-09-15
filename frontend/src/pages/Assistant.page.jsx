@@ -47,6 +47,7 @@ export const AssistantPage = () => {
     isBusy,
     pagination,
     changePagination,
+    canRun,
   } = useQuerySpec();
   const [text, setText] = useState("");
 
@@ -177,7 +178,7 @@ export const AssistantPage = () => {
           <Button
             fullWidth
             variant="contained"
-            disabled={!spec || isBusy}
+            disabled={!canRun || isBusy}
             onClick={() => runSpec(spec)}
             sx={{ mt: 2.5, bgcolor: palette.navy, "&:hover": { bgcolor: palette.navyDeep }, py: 1.2 }}
           >

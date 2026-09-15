@@ -1,24 +1,16 @@
-import { Box, Button, MenuItem, Select, Stack, Typography } from "@mui/material";
+import { Box, Button, Stack, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { palette } from "../../theme/theme";
+import { FilterAutocomplete } from "./FilterAutocomplete.component";
 import { FilterValueInput } from "./FilterValueInput.component";
+import { AddConditionMenu } from "./AddConditionMenu.component";
 import {
   OPERATOR_LABELS,
   findDimension,
-  withAddedFilter,
   withFilterAt,
+  withFilterForDimension,
   withoutFilterAt,
 } from "./spec.helpers";
-
-const field = {
-  fontSize: 13.5,
-  px: 1.4,
-  py: 0.75,
-  borderRadius: 1.5,
-  width: "100%",
-  border: `1px solid ${palette.border}`,
-  bgcolor: "#FFFFFF",
-};
 
 /**
  * The builder: field, operator and value, with no model in the loop. This is
@@ -73,48 +65,53 @@ export const FilterRows = ({ entity, spec, onChange }) => {
               }}
             >
               <Box sx={{ flex: 1.3, minWidth: 0 }}>
-                <Select
-                  value={filter.dimension}
-                  onChange={(event) => {
-                    const next = findDimension(entity, event.target.value);
+                <FilterAutocomplete
+                  disableClearable
+                  placeholder="Campo"
+                  options={entity.dimensions
+                    .filter((option) => option.kind !== "date")
+                    .map((option) => ({ value: option.name, label: option.label }))}
+                  value={
+                    dimension ? { value: dimension.name, label: dimension.label } : null
+                  }
+                  onChange={(selected) => {
+                    if (!selected?.value) {
+                      return;
+                    }
+
+                    const next = findDimension(entity, selected.value);
                     onChange(
                       withFilterAt(spec, index, {
-                        dimension: event.target.value,
+                        dimension: selected.value,
                         operator: next.operators[0],
-                        value: next.values?.length ? next.values[0].label : "",
+                        value: "",
                       }),
                     );
                   }}
-                  variant="standard"
-                  disableUnderline
-                  sx={field}
-                >
-                  {entity.dimensions
-                    .filter((option) => option.kind !== "date")
-                    .map((option) => (
-                      <MenuItem key={option.name} value={option.name} sx={{ fontSize: 13.5 }}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                </Select>
+                />
               </Box>
 
-              <Box sx={{ width: { xs: "100%", sm: 96 }, flexShrink: 0 }}>
-                <Select
-                  value={filter.operator}
-                  onChange={(event) =>
-                    onChange(withFilterAt(spec, index, { operator: event.target.value }))
+              <Box sx={{ width: { xs: "100%", sm: 130 }, flexShrink: 0 }}>
+                <FilterAutocomplete
+                  disableClearable
+                  placeholder="Operador"
+                  options={(dimension?.operators || []).map((operator) => ({
+                    value: operator,
+                    label: OPERATOR_LABELS[operator] || operator,
+                  }))}
+                  value={
+                    filter.operator
+                      ? {
+                          value: filter.operator,
+                          label: OPERATOR_LABELS[filter.operator] || filter.operator,
+                        }
+                      : null
                   }
-                  variant="standard"
-                  disableUnderline
-                  sx={field}
-                >
-                  {(dimension?.operators || []).map((operator) => (
-                    <MenuItem key={operator} value={operator} sx={{ fontSize: 13.5 }}>
-                      {OPERATOR_LABELS[operator] || operator}
-                    </MenuItem>
-                  ))}
-                </Select>
+                  onChange={(selected) =>
+                    selected?.value &&
+                    onChange(withFilterAt(spec, index, { operator: selected.value }))
+                  }
+                />
               </Box>
 
               <Box sx={{ flex: 1.5, minWidth: 0 }}>
@@ -141,12 +138,12 @@ export const FilterRows = ({ entity, spec, onChange }) => {
       </Stack>
 
       <Stack direction="row" spacing={2.5} sx={{ mt: 1.5, flexWrap: "wrap", rowGap: 0.5 }}>
-        <Button
-          onClick={() => onChange(withAddedFilter(spec, entity))}
-          sx={{ color: palette.accent, fontSize: 13, px: 0 }}
-        >
-          + Condición
-        </Button>
+        <AddConditionMenu
+          entity={entity}
+          spec={spec}
+          label="Condición"
+          onSelect={(dimension) => onChange(withFilterForDimension(spec, entity, dimension))}
+        />
         <Button
           onClick={() =>
             onChange({

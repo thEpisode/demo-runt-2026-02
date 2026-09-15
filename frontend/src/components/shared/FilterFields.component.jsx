@@ -2,7 +2,8 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { palette } from "../../theme/theme";
 import { FilterValueInput } from "./FilterValueInput.component";
-import { findDimension, withAddedFilter, withFilterAt, withoutFilterAt } from "./spec.helpers";
+import { AddConditionMenu } from "./AddConditionMenu.component";
+import { findDimension, withFilterAt, withFilterForDimension, withoutFilterAt } from "./spec.helpers";
 
 /**
  * The labelled-dropdown presentation used beside the conversation thread.
@@ -90,12 +91,12 @@ export const FilterFields = ({ entity, spec, onChange, onClear }) => {
         </Box>
       ) : null}
 
-      <Button
-        onClick={() => onChange(withAddedFilter(spec, entity))}
-        sx={{ color: palette.accent, fontSize: 13, px: 0 }}
-      >
-        + Agregar filtro
-      </Button>
+      <AddConditionMenu
+        entity={entity}
+        spec={spec}
+        label="Agregar filtro"
+        onSelect={(dimension) => onChange(withFilterForDimension(spec, entity, dimension))}
+      />
     </Box>
   );
 };
