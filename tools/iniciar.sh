@@ -71,7 +71,8 @@ probe_tls() {
   ' "$LLM_HOST" >/dev/null 2>&1
 }
 
-if [ -f "$HERE/ca.pem" ]; then
+# -s, not -f: an empty file here would mean trusting nothing.
+if [ -s "$HERE/ca.pem" ]; then
   export NODE_EXTRA_CA_CERTS="$HERE/ca.pem"
   echo "  Usando la cadena de certificados de esta red (ca.pem)."
   echo

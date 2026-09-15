@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
-# Run this ON the demo machine when TLS is intercepted by a corporate proxy.
-# It captures the certificate chain the proxy actually presents and writes it
-# next to iniciar.sh, which picks it up automatically.
+# Captures the certificate chain the network actually presents, so Node can
+# trust a TLS-intercepting corporate proxy. Uses the bundled Node rather than
+# openssl, which is not guaranteed to be installed.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
+HERE="$PWD"
+
+NODE_BIN="$HERE/runtime/bin/node"
+if ! "$NODE_BIN" --version >/dev/null 2>&1; then
+  NODE_BIN="$(command -v node || true)"
+fi
+
+if [ -z "$NODE_BIN" ]; then
+  echo "  No hay un Node utilizable para capturar el certificado." >&2
+  exit 1
+fi
 
 HOST="${1:-}"
 if [ -z "$HOST" ]; then
@@ -16,25 +27,51 @@ if [ -z "$HOST" ]; then
   exit 1
 fi
 
-echo
-echo "  Capturando la cadena de certificados de $HOST ..."
-echo
+# Written to a temporary file and moved only on success: an empty ca.pem left
+# behind would make the next run trust nothing at all.
+TMP="$HERE/.ca.pem.tmp"
+rm -f "$TMP"
 
-openssl s_client -showcerts -servername "$HOST" -connect "$HOST:443" </dev/null 2>/dev/null \
-  | awk '/-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/' > ca.pem
+"$NODE_BIN" -e '
+const tls = require("tls");
+const fs = require("fs");
+const [host, out] = process.argv.slice(1);
 
-COUNT="$(grep -c 'BEGIN CERTIFICATE' ca.pem || true)"
+const socket = tls.connect(
+  { host, port: 443, servername: host, rejectUnauthorized: false, timeout: 15000 },
+  () => {
+    const chain = [];
+    const seen = new Set();
+    let certificate = socket.getPeerCertificate(true);
 
-if [ "${COUNT:-0}" -eq 0 ]; then
-  rm -f ca.pem
-  echo "  No se pudo obtener la cadena. Revisa que haya salida hacia $HOST:443." >&2
+    while (certificate && certificate.raw && !seen.has(certificate.fingerprint256)) {
+      seen.add(certificate.fingerprint256);
+      const body = certificate.raw.toString("base64").match(/.{1,64}/g).join("\n");
+      chain.push(`-----BEGIN CERTIFICATE-----\n${body}\n-----END CERTIFICATE-----`);
+      certificate = certificate.issuerCertificate;
+    }
+
+    socket.end();
+
+    if (!chain.length) {
+      process.exit(1);
+    }
+
+    fs.writeFileSync(out, chain.join("\n") + "\n");
+    console.log(chain.length);
+  },
+);
+
+socket.on("timeout", () => { socket.destroy(); process.exit(1); });
+socket.on("error", () => process.exit(1));
+' "$HOST" "$TMP" > /dev/null 2>&1 || true
+
+if [ ! -s "$TMP" ]; then
+  rm -f "$TMP"
+  echo "  No se pudo obtener la cadena de $HOST." >&2
   exit 1
 fi
 
-echo "  Listo: ca.pem con $COUNT certificado(s)."
-echo "  Al ejecutar ./iniciar.sh se usará automáticamente."
-echo
-echo "  Nota: esto hace que la demo confíe en el proxy que intercepta el"
-echo "        tráfico, que es lo mismo que ya hacen los navegadores de la"
-echo "        organización."
-echo
+mv "$TMP" "$HERE/ca.pem"
+COUNT="$(grep -c 'BEGIN CERTIFICATE' "$HERE/ca.pem")"
+echo "  ca.pem listo con $COUNT certificado(s) de $HOST."
