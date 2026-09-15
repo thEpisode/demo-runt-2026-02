@@ -33,10 +33,15 @@ devuelven una aclaración explícita en vez de un número inventado.
 
 ## Arranque
 
-Backend (puerto 3610):
+Backend (puerto 3610). `config/default.json` y `.env` no están versionados —
+se crean desde sus plantillas y se llenan con los datos reales:
 
 ```bash
-cd backend && npm install && node -r dotenv/config app.js
+cd backend
+cp config/template.json config/default.json
+cp .env.sample .env
+npm install
+node -r dotenv/config app.js
 ```
 
 Frontend (puerto 3500):

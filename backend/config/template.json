@@ -3,7 +3,7 @@
     "name": "@link-loom/sdk"
   },
   "server": {
-    "port": "3601",
+    "port": "3610",
     "version": "1.0.0",
     "name": "runt.svc",
     "id": "xxxx__your_id",
@@ -27,8 +27,8 @@
   "modules": {
     "database": {
       "settings": {
-        "enabled": false,
-        "default": "mongodb"
+        "enabled": true,
+        "default": "oracle"
       },
       "providers": {
         "mongodb": {
@@ -52,6 +52,20 @@
             "token_uri": "xxxx__your_config",
             "auth_provider_x509_cert_url": "xxxx__your_config",
             "client_x509_cert_url": "xxxx__your_config"
+          }
+        },
+        "oracle": {
+          "settings": {
+            "user": "xxxx__your_config",
+            "password": "xxxx__your_config",
+            "connectString": "xxxx__your_host:1521/xxxx__your_service",
+            "schema": "RUNTPROD",
+            "poolMin": 1,
+            "poolMax": 4,
+            "poolIncrement": 1,
+            "callTimeoutMs": 60000,
+            "maxRows": 200,
+            "parallelDegree": 8
           }
         }
       }
@@ -121,7 +135,7 @@
     },
     "eventSystem": {
       "settings": {
-        "enabled": true,
+        "enabled": false,
         "internalBusManager": true,
         "broker": true,
         "listenProducerEvents": true,
@@ -130,7 +144,7 @@
     },
     "email": {
       "settings": {
-        "enabled": true,
+        "enabled": false,
         "default": "office365"
       },
       "providers": {
@@ -158,20 +172,12 @@
   },
   "customDependencies": [
     {
-      "name": "socketClient",
-      "package": "socket.io-client"
+      "name": "openai",
+      "package": "openai"
     },
     {
-      "name": "firebase",
-      "package": "firebase-admin"
-    },
-    {
-      "name": "mongodb",
-      "package": "mongodb"
-    },
-    {
-      "name": "vectry",
-      "package": "@vectry/node"
+      "name": "oracledb",
+      "package": "oracledb"
     }
   ]
 }
