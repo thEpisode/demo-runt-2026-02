@@ -146,3 +146,6 @@ backend/.DS_Store
 
 # Editor/tooling local
 .claude/
+
+# Paquete generado
+dist-demo/

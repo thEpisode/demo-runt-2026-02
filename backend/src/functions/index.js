@@ -22,6 +22,13 @@ const definition = {
       route: '/functions/startup/_template/_template.function',
       executionType: 'onServerLoaded',
     },
+    {
+      // 'atTime' runs during boot. The alternative waits on the internal event
+      // bus, which is disabled in this service, so the function would never run.
+      name: 'webClient',
+      route: '/functions/startup/web-client/web-client.function',
+      executionMode: 'atTime',
+    },
   ],
 };
 

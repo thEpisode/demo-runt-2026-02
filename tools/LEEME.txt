@@ -1,0 +1,27 @@
+DEMO RUNT — CONSULTA EN LENGUAJE NATURAL
+========================================
+
+QUÉ NECESITA ESTA MÁQUINA
+  Nada. Ni Node, ni npm, ni internet, ni permisos de administrador.
+  Todo viene dentro de esta carpeta.
+
+CÓMO SE INICIA
+  Abre una terminal en esta carpeta y escribe:
+
+      ./iniciar.sh
+
+  Luego abre el navegador en:
+
+      http://localhost:3610
+
+  Para detenerla, vuelve a la terminal y presiona Ctrl+C.
+
+SI ALGO FALLA
+  "Permission denied"
+      chmod +x iniciar.sh
+
+  "falta la conexión a la base de datos"
+      Hay que llenar los datos de Oracle en backend/config/default.json
+
+  La página abre pero las preguntas no responden
+      Revisa que la VPN esté conectada en esta máquina.

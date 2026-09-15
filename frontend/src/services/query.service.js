@@ -1,7 +1,9 @@
 import axios from "axios";
 
+// Empty base URL means same origin: the packaged demo is served by the API
+// itself, so there is no host to point at and no cross-origin hop.
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3610",
+  baseURL: import.meta.env.VITE_API_URL ?? "",
   headers: { "Content-Type": "application/json" },
 });
 
