@@ -53,13 +53,44 @@ if ! grep -qE '^LLM_APIKEY="?..' "$HERE/backend/.env" 2>/dev/null; then
 fi
 echo
 
-# Corporate TLS interception makes Node reject the model endpoint the same way
-# curl does. ca.pem, produced by capturar-ca.sh, is the chain the proxy
-# presents; trusting it is what lets the request through.
+# Corporate networks often intercept TLS and present their own certificate,
+# which Node rejects. Rather than asking the operator to diagnose that, probe
+# the endpoint and capture the chain automatically when it happens.
+LLM_HOST="$(grep -o 'LLM_ENDPOINT="[^"]*"' "$HERE/backend/.env" 2>/dev/null | sed 's|.*//||; s|/.*||')"
+
+probe_tls() {
+  [ -n "$LLM_HOST" ] || return 0
+  NODE_EXTRA_CA_CERTS="${1:-}" "$NODE_BIN" -e '
+    require("https").get({host: process.argv[1], path: "/", timeout: 12000}, () => process.exit(0))
+      .on("timeout", () => process.exit(1))
+      .on("error", (error) => {
+        const intercepted = ["UNABLE_TO_VERIFY_LEAF_SIGNATURE", "SELF_SIGNED_CERT_IN_CHAIN",
+                             "DEPTH_ZERO_SELF_SIGNED_CERT"].includes(error.code);
+        process.exit(intercepted ? 2 : 1);
+      });
+  ' "$LLM_HOST" >/dev/null 2>&1
+}
+
 if [ -f "$HERE/ca.pem" ]; then
   export NODE_EXTRA_CA_CERTS="$HERE/ca.pem"
-  echo "  Usando la cadena de certificados local (ca.pem)."
+  echo "  Usando la cadena de certificados de esta red (ca.pem)."
   echo
+elif [ -n "$LLM_HOST" ]; then
+  probe_tls || TLS_STATUS=$?
+  if [ "${TLS_STATUS:-0}" = "2" ]; then
+    echo "  Esta red intercepta el tráfico seguro. Obteniendo su certificado..."
+    if "$HERE/capturar-ca.sh" >/dev/null 2>&1 && [ -f "$HERE/ca.pem" ]; then
+      export NODE_EXTRA_CA_CERTS="$HERE/ca.pem"
+      echo "  Listo, resuelto automáticamente."
+    else
+      echo "  No se pudo obtener. El Constructor funcionará; el Buscador no."
+    fi
+    echo
+  elif [ "${TLS_STATUS:-0}" = "1" ]; then
+    echo "  AVISO: no hay salida hacia el servicio del modelo."
+    echo "         El Constructor funcionará; el Buscador y el Asistente no."
+    echo
+  fi
 fi
 
 PORT="$(grep -o '"port"[[:space:]]*:[[:space:]]*"[0-9]*"' "$CONFIG" | grep -o '[0-9]*' | head -1)"

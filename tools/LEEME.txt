@@ -11,9 +11,12 @@ PARA QUÉ MÁQUINA ES
   instalado, lo usará en su lugar.
 
 CÓMO SE INICIA
-  Abre una terminal en esta carpeta y escribe:
+  Abre una terminal donde quedó el archivo demo-runt.tar.gz, copia esta
+  línea completa, pégala y presiona Enter:
 
-      ./iniciar.sh
+      tar -xzf demo-runt.tar.gz && cd dist-demo && ./iniciar.sh
+
+  Eso hace todo: descomprime, configura y arranca.
 
   Luego abre el navegador en la dirección que muestre en pantalla
   (normalmente http://localhost:3610).
@@ -31,14 +34,9 @@ ANTES DE PRESENTAR
   y reemplaza usuario, contraseña y connectString por los del cliente.
 
 SI LA RED INTERCEPTA EL TRÁFICO (proxy corporativo)
-  Síntoma: las preguntas escritas no responden, o el registro dice algo de
-  certificados. Solución, una sola vez en esta máquina:
-
-      ./capturar-ca.sh
-
-  Genera un ca.pem con los certificados que presenta el proxy. A partir de
-  ahí ./iniciar.sh lo usa solo. El Constructor funciona sin esto, porque no
-  usa el modelo.
+  No hay que hacer nada: al iniciar se detecta solo y se resuelve.
+  Verás en pantalla "Esta red intercepta el tráfico seguro" y enseguida
+  "Listo, resuelto automáticamente".
 
 SI ALGO FALLA
   "Permission denied"
