@@ -1,0 +1,265 @@
+{
+  "version": "1.0.0",
+  "timezone": "America/Bogota",
+  "schema": "RUNTPROD",
+  "entities": {
+    "vehiculo": {
+      "label": "Vehículos",
+      "label_singular": "vehículo",
+      "label_plural": "vehículos",
+      "table": "RUNTPROD.RA_AUTOMOTOR",
+      "alias": "a",
+      "primary_key": "AUTOMOTOR_NROREGVEH",
+      "default_order": {
+        "dimension": "fecha_registro",
+        "direction": "desc"
+      },
+      "display_dimensions": [
+        "placa",
+        "color",
+        "servicio",
+        "modelo",
+        "ano_fabricacion",
+        "cilindraje",
+        "estado",
+        "fecha_registro"
+      ],
+      "dimensions": {
+        "placa": {
+          "label": "Placa",
+          "kind": "text",
+          "column": "AUTOMOTOR_PLACA_NUMPLACA",
+          "indexed": true,
+          "operators": [
+            "eq",
+            "ne",
+            "like",
+            "in",
+            "not_in"
+          ],
+          "closed_list": false
+        },
+        "color": {
+          "label": "Color",
+          "kind": "lookup",
+          "column": "AUTOMOTOR_COLOR_IDCOLOR",
+          "indexed": false,
+          "operators": [
+            "eq",
+            "ne",
+            "in",
+            "not_in",
+            "is_null",
+            "is_not_null"
+          ],
+          "lookup": {
+            "table": "RUNTPROD.PA_COLOR",
+            "alias": "c_color",
+            "key": "COLOR_IDCOLOR",
+            "label_column": "COLOR_PRIMARIO",
+            "active": {
+              "column": "COLOR_ESTADO",
+              "value": "A"
+            }
+          }
+        },
+        "servicio": {
+          "label": "Tipo de servicio",
+          "kind": "lookup",
+          "column": "AUTOMOTOR_TIPOSERVI_IDETIPSER",
+          "indexed": true,
+          "operators": [
+            "eq",
+            "ne",
+            "in",
+            "not_in",
+            "is_null",
+            "is_not_null"
+          ],
+          "lookup": {
+            "table": "RUNTPROD.PA_TIPOSERVI",
+            "alias": "c_servicio",
+            "key": "TIPOSERVI_IDETIPSER",
+            "label_column": "TIPOSERVI_NOMBRE",
+            "active": {
+              "column": "TIPOSERVI_ESTADO",
+              "value": "A"
+            }
+          }
+        },
+        "estado": {
+          "label": "Estado del vehículo",
+          "kind": "text",
+          "column": "AUTOMOTOR_ESTAVEHIC_NOMBRE",
+          "indexed": true,
+          "operators": [
+            "eq",
+            "ne",
+            "in",
+            "not_in"
+          ],
+          "closed_list": true
+        },
+        "modelo": {
+          "label": "Modelo",
+          "kind": "number",
+          "column": "AUTOMOTOR_MODELO",
+          "indexed": false,
+          "operators": [
+            "eq",
+            "ne",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "between",
+            "in",
+            "not_in"
+          ]
+        },
+        "ano_fabricacion": {
+          "label": "Año de fabricación",
+          "kind": "number",
+          "column": "AUTOMOTOR_ANOFABRIC",
+          "indexed": false,
+          "operators": [
+            "eq",
+            "ne",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "between",
+            "in",
+            "not_in"
+          ]
+        },
+        "cilindraje": {
+          "label": "Cilindraje",
+          "kind": "number",
+          "column": "AUTOMOTOR_CILINDRAJ",
+          "indexed": false,
+          "operators": [
+            "eq",
+            "ne",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "between"
+          ]
+        },
+        "fecha_registro": {
+          "label": "Fecha de registro",
+          "kind": "date",
+          "column": "AUTOMOTOR_FECHREGIS",
+          "indexed": true,
+          "operators": [
+            "eq",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "between",
+            "is_null",
+            "is_not_null"
+          ]
+        },
+        "fecha_cancelacion": {
+          "label": "Fecha de cancelación",
+          "kind": "date",
+          "column": "AUTOMOTOR_FECHCANCE",
+          "indexed": true,
+          "operators": [
+            "eq",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "between",
+            "is_null",
+            "is_not_null"
+          ]
+        }
+      }
+    }
+  },
+  "date_presets": [
+    {
+      "name": "today",
+      "label": "Hoy"
+    },
+    {
+      "name": "yesterday",
+      "label": "Ayer"
+    },
+    {
+      "name": "day_before_yesterday",
+      "label": "Anteayer"
+    },
+    {
+      "name": "this_week",
+      "label": "Esta semana"
+    },
+    {
+      "name": "last_week",
+      "label": "La semana pasada"
+    },
+    {
+      "name": "this_month",
+      "label": "Este mes"
+    },
+    {
+      "name": "last_month",
+      "label": "El mes pasado"
+    },
+    {
+      "name": "this_year",
+      "label": "En lo corrido del año"
+    },
+    {
+      "name": "last_30_days",
+      "label": "Últimos 30 días"
+    },
+    {
+      "name": "custom",
+      "label": "Rango personalizado"
+    }
+  ],
+  "out_of_scope": {
+    "licencia_conduccion": "Licencias de conducción",
+    "revision_tecnico_mecanica": "Revisiones técnico-mecánicas",
+    "examen_medico": "Exámenes médicos",
+    "marca": "Marca del vehículo",
+    "linea": "Línea del vehículo",
+    "clase_vehiculo": "Clase de vehículo (automóvil, motocicleta, bus)",
+    "organismo_transito": "Organismo de tránsito",
+    "propietario": "Propietario del vehículo"
+  },
+  "example_questions": [
+    {
+      "entity": "vehiculo",
+      "text": "¿Cuántos vehículos de color amarillo hay activos en este momento?"
+    },
+    {
+      "entity": "vehiculo",
+      "text": "¿Cuántos vehículos de servicio público están activos?"
+    },
+    {
+      "entity": "vehiculo",
+      "text": "¿Cuántos vehículos amarillos de servicio público existen?"
+    },
+    {
+      "entity": "vehiculo",
+      "text": "¿Cuántos vehículos se registraron esta semana?"
+    },
+    {
+      "entity": "vehiculo",
+      "text": "¿Cuántos vehículos modelo 2020 o más nuevos están activos?"
+    },
+    {
+      "entity": "vehiculo",
+      "text": "Muéstrame los vehículos cancelados el mes pasado"
+    }
+  ]
+}

@@ -45,6 +45,8 @@
     "mongodb": "^5.1.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.7.3",
+    "openai": "^4.104.0",
+    "oracledb": "^7.0.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",

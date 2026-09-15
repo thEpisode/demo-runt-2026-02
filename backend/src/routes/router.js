@@ -3,6 +3,7 @@ const communicationRoutes = require('./api/communication/communication.routes');
 const identityRoutes = require('./api/identity/identity.routes');
 const securityRoutes = require('./api/security/security.routes');
 const streamingRoutes = require('./api/streaming/streaming.routes');
+const reportingRoutes = require('./api/reporting/reporting.routes');
 
 const router = {
   ...systemRoutes,
@@ -10,6 +11,7 @@ const router = {
   ...identityRoutes,
   ...securityRoutes,
   ...streamingRoutes,
+  ...reportingRoutes,
   hello: [
     { method: 'GET',  httpRoute: '/ping',   route: 'routes/api/hello/hello.route', handler: 'ping',   protected: false },
     { method: 'GET',  httpRoute: '/status', route: 'routes/api/hello/hello.route', handler: 'status', protected: false },

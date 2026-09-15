@@ -10,6 +10,10 @@ const UserService = require('./user/user-management/user-management.service');
 
 const HelloService = require('./hello/hello.service');
 
+const ReportingQueryCatalogService = require('./reporting/query-catalog/query-catalog.service');
+const ReportingQueryCompilerService = require('./reporting/query-compiler/query-compiler.service');
+const ReportingNaturalQueryService = require('./reporting/natural-query/natural-query.service');
+
 const Template = require('./_template/_template.service');
 
 module.exports = {
@@ -22,5 +26,8 @@ module.exports = {
   UploadService,
   UserService,
   HelloService,
+  ReportingQueryCatalogService,
+  ReportingQueryCompilerService,
+  ReportingNaturalQueryService,
   Template,
 };
