@@ -1,10 +1,23 @@
 import { useState } from "react";
-import { Box, Chip, Paper, Stack, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { AppHeader } from "../components/shared/AppHeader.component";
 import { SearchPill } from "../components/shared/SearchPill.component";
 import { displayType, palette } from "../theme/theme";
 import { useQuerySpec } from "../hooks/useQuerySpec.hook";
+
+// Derived from the catalog so it stays true when a table is added: the lookup
+// dimensions are the tables the registry is crossed with.
+const describeSchema = (entity) => {
+  const crossed = entity.dimensions
+    .filter((dimension) => dimension.kind === "lookup")
+    .map((dimension) => dimension.label.toLowerCase());
+
+  const list =
+    crossed.length > 1 ? `${crossed.slice(0, -1).join(", ")} y ${crossed[crossed.length - 1]}` : crossed[0];
+
+  return `${entity.label} · ${entity.dimensions.length} campos · cruzado con ${list}`;
+};
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -54,10 +67,9 @@ export const HomePage = () => {
           />
           <Stack
             direction="row"
-            justifyContent="space-between"
+            justifyContent="flex-end"
             sx={{ mt: 1.5, px: 1, fontSize: 13, color: palette.muted }}
           >
-            <span>Consultar en Vehículos</span>
             <Box
               component="span"
               onClick={() => navigate("/constructor")}
@@ -101,11 +113,6 @@ export const HomePage = () => {
                 "&:hover": { borderColor: palette.accent, transform: "translateY(-1px)" },
               }}
             >
-              <Chip
-                size="small"
-                label="Vehículos"
-                sx={{ bgcolor: "#E8F1FB", color: palette.navy, fontSize: 11.5 }}
-              />
               <Typography sx={{ fontSize: 14.5, lineHeight: 1.45 }}>{example.text}</Typography>
             </Paper>
           ))}
@@ -118,9 +125,7 @@ export const HomePage = () => {
           sx={{ mt: 6, pt: 2.5, borderTop: `1px solid ${palette.border}`, pb: 8 }}
         >
           <Typography sx={{ fontSize: 13, color: palette.muted }}>
-            {entity ? `${entity.label} · ${entity.dimensions.length} campos` : "Cargando esquema…"}
-            {"  ·  "}
-            Licencias y Revisiones RTM no están incluidas en esta demo
+            {entity ? describeSchema(entity) : "Cargando esquema…"}
           </Typography>
         </Stack>
       </Box>

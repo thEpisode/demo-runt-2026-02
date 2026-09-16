@@ -1,16 +1,7 @@
-import { Box, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { RuntLogo } from "./RuntLogo.component";
 import { palette } from "../../theme/theme";
-
-// Licencias and Revisiones RTM are shown but inert: the demo only has the
-// vehicle registry, and hiding them would misrepresent the mockups the client
-// already saw.
-const SUBJECT_TABS = [
-  { label: "Vehículos", enabled: true },
-  { label: "Licencias", enabled: false },
-  { label: "Revisiones RTM", enabled: false },
-];
 
 const SURFACES = [
   { label: "Buscador", path: "/buscador" },
@@ -43,39 +34,8 @@ export const AppHeader = ({ title, subtitle, children, showSurfaces = true }) =>
           sx={{ mt: 2.5, flexWrap: "wrap", rowGap: 1.2 }}
           alignItems="center"
         >
-          {SUBJECT_TABS.map((tab) =>
-            tab.enabled ? (
-              <Typography
-                key={tab.label}
-                sx={{
-                  fontSize: 14.5,
-                  fontWeight: 600,
-                  pb: 1,
-                  borderBottom: "2px solid #6FC7ED",
-                  color: "#FFFFFF",
-                }}
-              >
-                {tab.label}
-              </Typography>
-            ) : (
-              <Tooltip key={tab.label} title="No incluido en esta demo" placement="bottom">
-                <Typography
-                  sx={{
-                    fontSize: 14.5,
-                    pb: 1,
-                    borderBottom: "2px solid transparent",
-                    color: "rgba(255,255,255,0.38)",
-                    cursor: "not-allowed",
-                  }}
-                >
-                  {tab.label}
-                </Typography>
-              </Tooltip>
-            ),
-          )}
-
           {showSurfaces ? (
-            <Stack direction="row" spacing={0.6} sx={{ ml: { xs: 0, md: "auto" }, pb: 0.6 }}>
+            <Stack direction="row" spacing={0.6} sx={{ pb: 0.6 }}>
               {SURFACES.map((surface) => {
                 const active = location.pathname === surface.path;
 
