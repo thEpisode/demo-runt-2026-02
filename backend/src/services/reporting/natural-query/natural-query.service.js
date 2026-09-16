@@ -119,6 +119,21 @@ class ReportingNaturalQueryService {
     }
 
     const spec = resolved.result;
+
+    if (spec.needs_clarification) {
+      return this._utilities.io.response.success({
+        spec,
+        restatement: null,
+        sql: null,
+        binds: null,
+        answer: null,
+        rows: [],
+        total: null,
+        needs_clarification: true,
+        clarification: spec.clarification,
+      });
+    }
+
     const compiled = this._compilerService.compile({ spec });
 
     if (!this._utilities.validator.response(compiled)) {
@@ -199,7 +214,7 @@ class ReportingNaturalQueryService {
 
       if (this._utilities.validator.response(groupResponse)) {
         queries.push(groupResponse.result.timing_ms);
-        groups = groupResponse.result.rows;
+        groups = await this.#disambiguateRows({ spec, rows: groupResponse.result.rows });
       }
     }
 
@@ -209,7 +224,7 @@ class ReportingNaturalQueryService {
       // A page turn knows no total, so it carries no answer either: the caller
       // keeps the one the counted query produced.
       answer: total === null ? null : this.#buildAnswer({ spec, total }),
-      rows: rowsResponse.result.rows,
+      rows: await this.#disambiguateRows({ spec, rows: rowsResponse.result.rows }),
       page: Number(data.page) || 1,
       page_size: pageSize,
       total,
@@ -217,6 +232,47 @@ class ReportingNaturalQueryService {
       query_count: queries.length,
       timing_ms: Date.now() - startedAt,
       dry_run: false,
+    });
+  }
+
+  /**
+   * The compiler returns <DIMENSION>__KEY next to the name for dimensions whose
+   * names repeat. Here the name becomes the disambiguated label and the key
+   * column is dropped, so the client never sees two identical LA UNION rows.
+   */
+  async #disambiguateRows({ spec, rows }) {
+    const entity = this._catalogService.getEntity(spec.entity);
+    const ambiguous = Object.entries(entity.dimensions).filter(([, dimension]) => dimension.disambiguate_by);
+
+    if (!ambiguous.length || !rows?.length) {
+      return rows;
+    }
+
+    const domainValues = await this._catalogService.loadDomainValues();
+
+    return rows.map((row) => {
+      const next = { ...row };
+
+      for (const [name] of ambiguous) {
+        const column = name.toUpperCase();
+        const keyColumn = `${column}__KEY`;
+
+        if (!(keyColumn in next)) {
+          continue;
+        }
+
+        const match = (domainValues[`${spec.entity}.${name}`] || []).find(
+          (value) => String(value.id) === String(next[keyColumn]),
+        );
+
+        if (match) {
+          next[column] = match.label;
+        }
+
+        delete next[keyColumn];
+      }
+
+      return next;
     });
   }
 
@@ -334,13 +390,22 @@ class ReportingNaturalQueryService {
     const dimensions = Object.entries(entity.dimensions)
       .map(([name, dimension]) => {
         const values = domainValues[`vehiculo.${name}`];
-        const closed = values ? ' (closed list)' : '';
+        let listing = '';
 
-        return `- ${name} — ${dimension.label} — ${dimension.kind}${closed} — operators: ${dimension.operators.join(', ')}`;
+        if (values && dimension.prompt_values === false) {
+          listing = ' (free text: write the name as the user said it, it is matched against the registry)';
+        } else if (values) {
+          listing = ' (closed list)';
+        }
+
+        return `- ${name} — ${dimension.label} — ${dimension.kind}${listing} — operators: ${dimension.operators.join(', ')}`;
       })
       .join('\n');
 
+    // Around 1,100 municipalities would bloat every request and dilute the
+    // short lists that do need exact spelling, so those stay out of the prompt.
     const valueLists = Object.entries(domainValues)
+      .filter(([key]) => entity.dimensions[key.split('.')[1]]?.prompt_values !== false)
       .map(([key, values]) => {
         const name = key.split('.')[1];
 

@@ -10,6 +10,7 @@ const DIMENSION_PHRASES = {
   placa: { prefix: 'con placa' },
   color: { prefix: 'de color' },
   servicio: { prefix: 'de servicio' },
+  municipio: { prefix: 'matriculados en', properNoun: true },
   estado: { prefix: 'con estado' },
   modelo: { prefix: 'modelo', numeric: true },
   ano_fabricacion: { prefix: 'año de fabricación', numeric: true },
@@ -80,17 +81,19 @@ class ReportingQueryCatalogService {
 
     if (dimension.kind === 'lookup') {
       const { table, key, label_column: labelColumn, active } = dimension.lookup;
+      const group = dimension.disambiguate_by;
       const where = active ? ` WHERE ${active.column} = '${active.value}'` : '';
+      const groupColumn = group ? `, ${group.column} AS GROUP_CODE` : '';
       const response = await this._database.query({
-        sql: `SELECT ${key} AS ID, ${labelColumn} AS LABEL FROM ${table}${where} ORDER BY ${labelColumn}`,
-        maxRows: 500,
+        sql: `SELECT ${key} AS ID, ${labelColumn} AS LABEL${groupColumn} FROM ${table}${where} ORDER BY ${labelColumn}`,
+        maxRows: 5000,
       });
 
       if (!this._utilities.validator.response(response)) {
         return null;
       }
 
-      return response.result.rows.map((row) => ({ id: row.ID, label: row.LABEL }));
+      return this.#disambiguate({ rows: response.result.rows, group });
     }
 
     if (dimension.kind === 'text' && dimension.closed_list) {
@@ -107,6 +110,31 @@ class ReportingQueryCatalogService {
     }
 
     return null;
+  }
+
+  /**
+   * Names repeat across departments (there are several LA UNION), and two
+   * identical labels are impossible to tell apart in a picker. Only the
+   * repeated ones get the department appended; `name` keeps the raw value so a
+   * question that just says "La Unión" can still be matched and flagged as
+   * ambiguous.
+   */
+  #disambiguate({ rows, group }) {
+    const occurrences = rows.reduce((counts, row) => {
+      counts[row.LABEL] = (counts[row.LABEL] || 0) + 1;
+      return counts;
+    }, {});
+
+    return rows.map((row) => {
+      const repeated = occurrences[row.LABEL] > 1;
+      const groupName = group?.names?.[String(row.GROUP_CODE)] || row.GROUP_CODE;
+
+      return {
+        id: row.ID,
+        name: row.LABEL,
+        label: repeated && group ? `${row.LABEL} (${groupName})` : row.LABEL,
+      };
+    });
   }
 
   async getPublicCatalog() {
@@ -328,6 +356,11 @@ class ReportingQueryCatalogService {
    * against the tiny parameter table first means the fact table is filtered by
    * its indexed foreign key instead of by a function over text.
    */
+  /**
+   * Turns lookup labels into the ids the fact table stores. Resolving against
+   * the small parameter table first means the fact table is filtered by its
+   * indexed foreign key instead of by a function over text.
+   */
   async resolveSpec({ spec } = {}) {
     const entity = this.getEntity(spec.entity);
     const domainValues = await this.loadDomainValues();
@@ -343,32 +376,117 @@ class ReportingQueryCatalogService {
 
       const values = domainValues[`${spec.entity}.${filter.dimension}`] || [];
       const wanted = Array.isArray(filter.value) ? filter.value : [filter.value];
+      const matchedLabels = [];
       const resolved = [];
 
       for (const label of wanted) {
-        const match = values.find(
-          (value) => this.#normalizeLabel(value.label) === this.#normalizeLabel(label),
-        );
+        const outcome = this.#resolveLabel({ label, values, dimension });
 
-        if (!match) {
-          const options = values.map((value) => value.label).join(', ');
-
-          return this._utilities.io.response.error(
-            `"${label}" no es un ${dimension.label.toLowerCase()} conocido. Valores válidos: ${options}`,
-          );
+        if (!this._utilities.validator.response(outcome)) {
+          return outcome;
         }
 
-        resolved.push(match.id);
+        // An ambiguous name is a question for the user, not a failure: it goes
+        // back as a clarification so the interface can ask instead of erroring.
+        if (outcome.result.ambiguous) {
+          return this._utilities.io.response.success({
+            ...spec,
+            needs_clarification: true,
+            clarification: outcome.result.message,
+          });
         }
+
+        matchedLabels.push(outcome.result.label);
+        resolved.push(outcome.result.id);
+      }
 
       filters.push({
         ...filter,
-        value: Array.isArray(filter.value) ? wanted : wanted[0],
+        value: Array.isArray(filter.value) ? matchedLabels : matchedLabels[0],
         resolved: Array.isArray(filter.value) ? resolved : resolved[0],
       });
     }
 
     return this._utilities.io.response.success({ ...spec, filters });
+  }
+
+  #resolveLabel({ label, values, dimension }) {
+    const wanted = this.#normalizeLabel(label);
+    const noun = dimension.label.toLowerCase();
+
+    const byLabel = values.filter((value) => this.#normalizeLabel(value.label) === wanted);
+    if (byLabel.length === 1) {
+      return this._utilities.io.response.success(byLabel[0]);
+    }
+
+    const byName = values.filter((value) => this.#normalizeLabel(value.name ?? value.label) === wanted);
+    if (byName.length === 1) {
+      return this._utilities.io.response.success(byName[0]);
+    }
+
+    if (byName.length > 1) {
+      return this.#ambiguous({ label, noun, candidates: byName });
+    }
+
+    // Fuzzy dimensions accept the name the way people say it: "Bogotá" for
+    // BOGOTA D.C. Closed lists do not, because there a near miss is an error.
+    if (dimension.resolution === 'fuzzy') {
+      const partial = values.filter((value) =>
+        this.#normalizeLabel(value.name ?? value.label).includes(wanted),
+      );
+
+      if (partial.length === 1) {
+        return this._utilities.io.response.success(partial[0]);
+      }
+
+      if (partial.length > 1) {
+        return this.#ambiguous({ label, noun, candidates: partial });
+      }
+
+      return this._utilities.io.response.error(
+        `No encontré el ${noun} "${label}". Revisa cómo está escrito.`,
+      );
+    }
+
+    const options = values.map((value) => value.label).join(', ');
+
+    return this._utilities.io.response.error(
+      `"${label}" no es un ${noun} conocido. Valores válidos: ${options}`,
+    );
+  }
+
+  #ambiguous({ label, noun, candidates }) {
+    const options = candidates
+      .slice(0, 8)
+      .map((value) => value.label)
+      .join(', ');
+
+    return this._utilities.io.response.success({
+      ambiguous: true,
+      message: `"${label}" corresponde a más de un ${noun}: ${options}. ¿Cuál de ellos?`,
+    });
+  }
+
+  /** CALI → Cali, SANTIAGO DE CALI → Santiago de Cali, BOGOTA D.C. stays D.C. */
+  #titleCase(value) {
+    const connectors = new Set(['de', 'del', 'la', 'las', 'los', 'el', 'y']);
+
+    return String(value)
+      .toLowerCase()
+      .split(' ')
+      .map((word, index) => {
+        if (word.includes('.')) {
+          return word.toUpperCase();
+        }
+
+        if (index > 0 && connectors.has(word)) {
+          return word;
+        }
+
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      })
+      .join(' ')
+      .replace(/\((\w)/g, (_match, letter) => `(${letter.toUpperCase()}`);
   }
 
   #normalizeLabel(label) {
@@ -426,7 +544,13 @@ class ReportingQueryCatalogService {
     const phrase = DIMENSION_PHRASES[filter.dimension] || {};
     const prefix = phrase.prefix || dimension.label.toLowerCase();
     const numeric = Boolean(phrase.numeric);
-    const display = (value) => (numeric ? value : String(value).toLowerCase());
+    const display = (value) => {
+      if (numeric) {
+        return value;
+      }
+
+      return phrase.properNoun ? this.#titleCase(value) : String(value).toLowerCase();
+    };
 
     const list = (values) => {
       const items = values.map(display);

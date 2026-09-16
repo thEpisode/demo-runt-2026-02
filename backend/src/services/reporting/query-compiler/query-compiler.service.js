@@ -158,6 +158,12 @@ class ReportingQueryCompilerService {
         `  LEFT JOIN ${table} ${alias} ON ${alias}.${key} = ${entity.alias}.${dimension.column}`,
       );
       columns.push(`${alias}.${labelColumn} AS ${dimensionName.toUpperCase()}`);
+
+      // The name alone cannot tell two LA UNION apart; the key lets the
+      // service swap in the disambiguated label after the query.
+      if (dimension.disambiguate_by) {
+        columns.push(`${entity.alias}.${dimension.column} AS ${dimensionName.toUpperCase()}__KEY`);
+      }
     }
 
     const order = spec.order_by || entity.default_order;
@@ -194,7 +200,14 @@ class ReportingQueryCompilerService {
         `  LEFT JOIN ${table} ${alias} ON ${alias}.${key} = ${entity.alias}.${dimension.column}`,
       );
       columns.push(`${alias}.${labelColumn} AS ${dimensionName.toUpperCase()}`);
-      groupColumns.push(`${alias}.${labelColumn}`);
+
+      // Grouping by the name alone would add up every municipality that shares
+      // it — the two LA UNION would come back as a single row.
+      groupColumns.push(`${alias}.${key}`, `${alias}.${labelColumn}`);
+
+      if (dimension.disambiguate_by) {
+        columns.push(`${alias}.${key} AS ${dimensionName.toUpperCase()}__KEY`);
+      }
     }
 
     return (
