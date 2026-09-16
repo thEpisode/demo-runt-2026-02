@@ -3,7 +3,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { palette } from "../../theme/theme";
 import { FilterValueInput } from "./FilterValueInput.component";
 import { AddConditionMenu } from "./AddConditionMenu.component";
-import { findDimension, withFilterAt, withFilterForDimension, withoutFilterAt } from "./spec.helpers";
+import { findDimension, withFilterForDimension, withFilterValueAt, withoutFilterAt } from "./spec.helpers";
 
 /**
  * The dark sidebar of the search screen: the filters the model read out of the
@@ -57,8 +57,9 @@ export const FilterChips = ({ entity, spec, onChange, onApply, onClear, busy }) 
                 <FilterValueInput
                   dark
                   dimension={dimension}
+                  operator={filter.operator}
                   value={filter.value}
-                  onChange={(value) => onChange(withFilterAt(spec, index, { value }))}
+                  onChange={(value) => onChange(withFilterValueAt(spec, index, value))}
                 />
               </Box>
             </Box>

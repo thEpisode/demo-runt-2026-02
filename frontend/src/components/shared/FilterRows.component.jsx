@@ -6,9 +6,11 @@ import { FilterValueInput } from "./FilterValueInput.component";
 import { AddConditionMenu } from "./AddConditionMenu.component";
 import {
   OPERATOR_LABELS,
+  conditionFieldOptions,
   findDimension,
   withFilterAt,
   withFilterForDimension,
+  withFilterValueAt,
   withoutFilterAt,
 } from "./spec.helpers";
 
@@ -68,9 +70,11 @@ export const FilterRows = ({ entity, spec, onChange }) => {
                 <FilterAutocomplete
                   disableClearable
                   placeholder="Campo"
-                  options={entity.dimensions
-                    .filter((option) => option.kind !== "date")
-                    .map((option) => ({ value: option.name, label: option.label }))}
+                  options={conditionFieldOptions(entity, spec).map((option) =>
+                    option.value === filter.dimension
+                      ? { ...option, disabled: false, hint: null }
+                      : option,
+                  )}
                   value={
                     dimension ? { value: dimension.name, label: dimension.label } : null
                   }
@@ -117,8 +121,9 @@ export const FilterRows = ({ entity, spec, onChange }) => {
               <Box sx={{ flex: 1.5, minWidth: 0 }}>
                 <FilterValueInput
                   dimension={dimension}
+                  operator={filter.operator}
                   value={filter.value}
-                  onChange={(value) => onChange(withFilterAt(spec, index, { value }))}
+                  onChange={(value) => onChange(withFilterValueAt(spec, index, value))}
                 />
               </Box>
 

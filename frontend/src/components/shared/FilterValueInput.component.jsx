@@ -1,10 +1,25 @@
 import { InputBase } from "@mui/material";
 import { palette } from "../../theme/theme";
 import { FilterAutocomplete } from "./FilterAutocomplete.component";
+import { acceptsManyValues } from "./spec.helpers";
 
-export const FilterValueInput = ({ dimension, value, onChange, dark }) => {
+export const FilterValueInput = ({ dimension, operator, value, onChange, dark }) => {
   const options = dimension?.values || [];
   const current = Array.isArray(value) ? value[0] || "" : value || "";
+
+  if (acceptsManyValues(dimension, operator)) {
+    const values = Array.isArray(value) ? value : [value].filter(Boolean);
+
+    return (
+      <FilterAutocomplete
+        dark={dark}
+        multiple
+        options={options.map((option) => option.label)}
+        value={values}
+        onChange={onChange}
+      />
+    );
+  }
 
   if (options.length) {
     return (

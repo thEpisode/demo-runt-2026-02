@@ -41,13 +41,52 @@ export const withoutFilterAt = (spec, index) => ({
   filters: spec.filters.filter((_, position) => position !== index),
 });
 
-/** Dimensions that are not already filtered, for the add-condition menu. */
-export const availableDimensions = (entity, spec) => {
+/**
+ * Every filterable field for the add-condition picker. Fields that already
+ * hold a condition stay listed but disabled: a second row would AND against
+ * the first, so more values go into that same condition instead.
+ */
+export const conditionFieldOptions = (entity, spec) => {
   const used = new Set((spec?.filters || []).map((filter) => filter.dimension));
 
-  return (entity?.dimensions || []).filter(
-    (dimension) => dimension.kind !== "date" && !used.has(dimension.name),
-  );
+  return (entity?.dimensions || [])
+    .filter((dimension) => dimension.kind !== "date")
+    .map((dimension) => ({
+      value: dimension.name,
+      label: dimension.label,
+      disabled: used.has(dimension.name),
+      hint: used.has(dimension.name) ? "Ya está en las condiciones" : null,
+    }));
+};
+
+const MULTI_OPERATOR = { eq: "in", ne: "not_in" };
+const SINGLE_OPERATOR = { in: "eq", not_in: "ne" };
+
+/** True when the condition can hold several values of a closed list. */
+export const acceptsManyValues = (dimension, operator) =>
+  Boolean(dimension?.values?.length) &&
+  Boolean(dimension?.operators?.includes("in")) &&
+  ["eq", "ne", "in", "not_in"].includes(operator);
+
+/**
+ * Sets the value of a condition, keeping the operator in step with how many
+ * values it holds: one value is "=", several are "en".
+ */
+export const withFilterValueAt = (spec, index, value) => {
+  if (!Array.isArray(value)) {
+    return withFilterAt(spec, index, { value });
+  }
+
+  const operator = spec.filters[index]?.operator;
+
+  if (value.length > 1) {
+    return withFilterAt(spec, index, { value, operator: MULTI_OPERATOR[operator] || operator });
+  }
+
+  return withFilterAt(spec, index, {
+    value: value[0] ?? "",
+    operator: SINGLE_OPERATOR[operator] || operator,
+  });
 };
 
 /**
